@@ -1,0 +1,588 @@
+<title>Mafia Wiesn-Edition</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@600;800&family=Alegreya+Sans:wght@400;500;700;800&display=swap">
+<style>
+/* Layout: one-screen pass-and-play app. A Bavarian lozenge band on top, then a single column (max 30rem) where each game phase is one stage with a big action button at the bottom. Deliberately single-theme (night in the beer tent). */
+:root{
+  --tent:#0f2238;
+  --tent-2:#17314f;
+  --tent-3:#1f3f63;
+  --lozenge:#2c7cc4;
+  --cream:#f6efe0;
+  --muted:#a9b8c9;
+  --gold:#f0b23a;
+  --gold-ink:#2a1a02;
+  --danger:#ef7a68;
+  --line:rgba(246,239,224,.16);
+  --display:"Grenze Gotisch", "UnifrakturMaguntia", Georgia, serif;
+  --body:"Alegreya Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--tent);color:var(--cream);font-family:var(--body);font-size:17px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+.band{height:18px;background:var(--cream) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='16'%3E%3Crect width='28' height='16' fill='%23f6efe0'/%3E%3Cpath d='M14 0 28 8 14 16 0 8Z' fill='%232c7cc4'/%3E%3C/svg%3E") repeat-x;background-size:28px 18px}
+.app{max-width:30rem;margin:0 auto;padding-block:14px 40px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:18px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:36px}
+.brand{font-family:var(--display);font-weight:800;font-size:1.5rem;color:var(--gold);letter-spacing:.01em}
+.brand small{font-family:var(--body);font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-left:8px}
+.abort{display:flex;gap:8px;align-items:center}
+.link{background:none;border:0;color:var(--muted);font:600 .9rem var(--body);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px 2px}
+.link.warn{color:var(--danger)}
+h1,h2,h3{margin:0;text-wrap:balance}
+p{margin:0}
+.stage{display:flex;flex-direction:column;gap:14px;animation:rise .35s ease-out}
+@keyframes rise{from{transform:translateY(8px)}to{transform:none}}
+@media (prefers-reduced-motion:reduce){.stage{animation:none}}
+.hero{font-family:var(--display);font-weight:800;font-size:clamp(3.6rem,18vw,5rem);line-height:.9;color:var(--gold)}
+.hero span{display:block;font-family:var(--body);font-size:.95rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--cream);margin-top:10px}
+.lede{color:var(--muted);max-width:34ch}
+.eyebrow{font-size:.78rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.big{font-family:var(--display);font-weight:800;font-size:2.4rem;line-height:1.02;color:var(--gold)}
+.panel{background:var(--tent-2);border:1px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.panel h2{font-size:1.15rem;font-weight:800}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.row > div{min-width:0}
+.count{font-variant-numeric:tabular-nums;font-weight:800;color:var(--gold);font-size:1.15rem}
+.hint{color:var(--muted);font-size:.92rem}
+.add{display:flex;gap:8px}
+.add input{flex:1;min-width:0;min-height:50px;border-radius:12px;border:1.5px solid var(--line);background:var(--tent);color:var(--cream);font:500 1.05rem var(--body);padding:0 14px}
+.add input:focus{outline:2px solid var(--gold);outline-offset:1px}
+.chips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:flex;align-items:center;gap:4px;background:var(--tent-3);border-radius:999px;padding:4px 4px 4px 14px;font-weight:600}
+.chip button{width:32px;height:32px;border-radius:50%;border:0;background:transparent;color:var(--muted);font-size:1.2rem;cursor:pointer}
+.chip.ex{opacity:.7;font-style:italic}
+.setting{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:4px}
+.setting b{display:block;font-weight:700}
+.setting small{display:block;color:var(--muted);font-size:.85rem;line-height:1.3}
+.stepper{display:flex;align-items:center;gap:4px;flex:none}
+.stepper button{width:42px;height:42px;border-radius:12px;border:1.5px solid var(--line);background:var(--tent);color:var(--cream);font-size:1.3rem;font-weight:700;cursor:pointer}
+.stepper output{min-width:2.2ch;text-align:center;font-weight:800;font-variant-numeric:tabular-nums;font-size:1.15rem}
+.toggle{flex:none;width:58px;height:34px;border-radius:999px;border:0;background:var(--tent-3);position:relative;cursor:pointer}
+.toggle::after{content:"";position:absolute;top:4px;left:4px;width:26px;height:26px;border-radius:50%;background:var(--muted);transition:transform .15s}
+.toggle[aria-checked="true"]{background:var(--gold)}
+.toggle[aria-checked="true"]::after{transform:translateX(24px);background:var(--gold-ink)}
+.rules summary{cursor:pointer;font-weight:800;list-style:none}
+.rules summary::after{content:" +";color:var(--gold)}
+.rules[open] summary::after{content:" –"}
+.rules ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px;color:var(--cream)}
+.err{color:var(--danger);font-weight:600}
+.btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:58px;border-radius:14px;border:0;font:800 1.12rem var(--body);cursor:pointer;padding:0 16px;text-align:center}
+.btn.small{width:auto;min-height:50px;font-size:1rem}
+.primary{background:var(--gold);color:var(--gold-ink)}
+.primary:disabled{opacity:.35;cursor:not-allowed}
+.ghost{background:transparent;color:var(--cream);border:1.5px solid var(--line)}
+button:focus-visible{outline:3px solid var(--cream);outline-offset:2px}
+.actions{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.handoff{align-items:flex-start;padding-block:6vh 2vh}
+.pass{font-size:1.1rem;color:var(--muted)}
+.who{font-family:var(--display);font-weight:800;font-size:clamp(2.8rem,14vw,4rem);line-height:1;color:var(--cream);overflow-wrap:anywhere}
+.card{background:var(--tent-2);border:2px solid var(--gold);border-radius:20px;overflow:hidden;display:flex;flex-direction:column}
+.card .strip{height:12px;background:inherit;background:var(--cream) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='16'%3E%3Crect width='28' height='16' fill='%23f6efe0'/%3E%3Cpath d='M14 0 28 8 14 16 0 8Z' fill='%232c7cc4'/%3E%3C/svg%3E") repeat-x;background-size:21px 12px}
+.card .inner{padding:20px;display:flex;flex-direction:column;gap:12px}
+.emblem{width:76px;height:76px;color:var(--gold)}
+.rolename{font-family:var(--display);font-weight:800;font-size:3rem;line-height:1;color:var(--gold)}
+.goal{color:var(--muted);font-size:.95rem}
+.allies{background:var(--tent);border-radius:12px;padding:12px 14px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.opt{min-height:56px;border-radius:12px;background:var(--tent-2);color:var(--cream);border:1.5px solid var(--line);font:700 1.05rem var(--body);padding:8px 12px;text-align:left;cursor:pointer;overflow-wrap:anywhere;display:flex;flex-direction:column;justify-content:center}
+.opt small{font-weight:500;font-size:.78rem;color:var(--muted)}
+.opt[aria-pressed="true"]{background:var(--gold);color:var(--gold-ink);border-color:var(--gold)}
+.opt[aria-pressed="true"] small{color:var(--gold-ink)}
+.opt:disabled{opacity:.38;cursor:not-allowed}
+.timer{display:flex;flex-direction:column;align-items:center;gap:12px;padding-block:8px}
+.clock{font-family:var(--display);font-weight:800;font-size:5rem;line-height:1;font-variant-numeric:tabular-nums;color:var(--cream)}
+.clock.done{color:var(--danger)}
+.tbtns{display:flex;gap:8px;width:100%}
+.tbtns .btn{min-height:50px;font-size:1rem}
+.roster{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.roster li{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.roster li:last-child{border-bottom:0}
+.roster .dead span:first-child{text-decoration:line-through;color:var(--muted)}
+.roster .tag{color:var(--muted);font-size:.9rem;text-align:right}
+.roster .tag.m{color:var(--danger);font-weight:700}
+.roster .win span:first-child{font-weight:800}
+.note{background:var(--tent-2);border-left:0;border-radius:12px;padding:12px 14px;color:var(--cream)}
+</style>
+
+<div class="band" aria-hidden="true"></div>
+<main class="app" id="app" aria-live="polite"></main>
+
+<script>
+/* ENGINE START — pure game logic, no DOM. Tested by test-engine.mjs */
+const ROLES = {
+  mafia: { name: "Bierdieb", team: "mafia",
+    desc: "Du gehörst zur Maßkrug-Mafia. Jede Nacht schickt ihr gemeinsam einen Gast unter den Tisch. Tagsüber spielst du den harmlosen Festbesucher.",
+    goal: "Ihr gewinnt, sobald im Zelt genauso viele Bierdiebe wie ehrliche Gäste sitzen." },
+  ordner: { name: "Ordner", team: "guests",
+    desc: "Jede Nacht filzt du einen Gast und erfährst, ob er zur Maßkrug-Mafia gehört.",
+    goal: "Hilf den Gästen, alle Bierdiebe rauszuwerfen. Verrat dich nicht zu früh." },
+  sani: { name: "Sanitäter", team: "guests",
+    desc: "Jede Nacht passt du auf einen Gast auf, gern auch auf dich selbst. Wollen die Bierdiebe genau den erwischen, bleibt er auf den Beinen. Nicht zweimal hintereinander dieselbe Person.",
+    goal: "Halte die Gäste am Leben, bis alle Bierdiebe draußen sind." },
+  gast: { name: "Wiesn-Gast", team: "guests",
+    desc: "Du willst nur in Ruhe deine Maß trinken. Finde tagsüber heraus, wer die Bierdiebe sind.",
+    goal: "Werft alle Bierdiebe aus dem Zelt." },
+  gaudi: { name: "Gaudibursch", team: "solo",
+    desc: "Dir ist alles egal, Hauptsache Gaudi. Du spielst gegen alle.",
+    goal: "Du gewinnst allein, wenn das Zelt dich tagsüber rauswirft. Wirk verdächtig, aber nicht zu offensichtlich." }
+};
+
+const Engine = {
+  suggestMafia(n) { return n <= 6 ? 1 : n <= 9 ? 2 : n <= 12 ? 3 : 4; },
+  buildRoles(n, s) {
+    const r = [];
+    for (let i = 0; i < s.mafia; i++) r.push("mafia");
+    if (s.ordner) r.push("ordner");
+    if (s.sani) r.push("sani");
+    if (s.gaudi) r.push("gaudi");
+    while (r.length < n) r.push("gast");
+    return r;
+  },
+  validate(n, s) {
+    if (n < 5) return "Ihr braucht mindestens 5 Leute am Tisch.";
+    if (s.mafia < 1) return "Mindestens ein Bierdieb muss mitspielen.";
+    const special = s.mafia + (s.ordner ? 1 : 0) + (s.sani ? 1 : 0) + (s.gaudi ? 1 : 0);
+    if (special > n) return "Mehr Sonderrollen als Spieler. Nimm eine Rolle raus.";
+    if (s.mafia * 2 >= n) return "Zu viele Bierdiebe: Sie hätten sofort gewonnen.";
+    return null;
+  },
+  shuffle(arr, rng = Math.random) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  },
+  assign(names, s, rng = Math.random) {
+    const roles = Engine.shuffle(Engine.buildRoles(names.length, s), rng);
+    return names.map((name, i) => ({ name, role: roles[i], alive: true }));
+  },
+  // Most votes wins; on a tie the target that was voted for first wins (deterministic).
+  mafiaTarget(votes) {
+    if (!votes || !votes.length) return null;
+    const c = new Map();
+    votes.forEach(v => c.set(v.target, (c.get(v.target) || 0) + 1));
+    const max = Math.max(...c.values());
+    return votes.find(v => c.get(v.target) === max).target;
+  },
+  resolveNight(night) {
+    const target = Engine.mafiaTarget(night.mafiaVotes);
+    if (target == null) return { victim: null, saved: false };
+    if (night.protect === target) return { victim: null, saved: true };
+    return { victim: target, saved: false };
+  },
+  winner(players, lynched = null) {
+    if (lynched != null && players[lynched] && players[lynched].role === "gaudi") return "gaudi";
+    const alive = players.filter(p => p.alive);
+    const m = alive.filter(p => p.role === "mafia").length;
+    if (m === 0) return "guests";
+    if (m >= alive.length - m) return "mafia";
+    return null;
+  }
+};
+/* ENGINE END */
+
+const EXAMPLES = ["Sepp", "Resi", "Vroni", "Franzl", "Gitti", "Hias"];
+const KEY = "wiesn-mafia-state", NKEY = "wiesn-mafia-names";
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+
+function fresh(names) {
+  const saved = names || store.get(NKEY);
+  return {
+    phase: "setup",
+    names: saved && saved.length ? saved : EXAMPLES.slice(),
+    examples: !(saved && saved.length),
+    settings: { mafia: null, ordner: true, sani: true, gaudi: false, reveal: true, minutes: 3 },
+    players: [], i: 0, sub: "handoff", sel: null,
+    round: 0, night: null, lastProtect: null, morning: null, lynch: null, winner: null,
+    timer: { left: 180, running: false, endAt: 0 }, confirmAbort: false, err: null
+  };
+}
+let S = store.get(KEY) || fresh();
+
+const h = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const mafiaCount = () => S.settings.mafia ?? Engine.suggestMafia(S.names.length);
+const alive = () => S.players.map((p, i) => ({ ...p, i })).filter(p => p.alive);
+const fmt = s => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+const ICON = {
+  mafia: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"><path d="M14 16h28v38H14z"/><path d="M42 24h6a6 6 0 0 1 6 6v10a6 6 0 0 1-6 6h-6"/><path d="M8 30c6-4 34-4 40 0-2 6-8 8-12 6l-4-2-4 2c-4 2-10 0-12-6" fill="currentColor"/></svg>',
+  ordner: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"><path d="M32 6 54 14v16c0 14-10 23-22 28C20 53 10 44 10 30V14z"/><path d="m22 32 7 7 13-14"/></svg>',
+  sani: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"><circle cx="32" cy="32" r="25"/><path d="M27 18h10v9h9v10h-9v9H27v-9h-9V27h9z" fill="currentColor"/></svg>',
+  gast: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"><path d="M14 18h28v36H14z"/><path d="M42 26h6a6 6 0 0 1 6 6v8a6 6 0 0 1-6 6h-6"/><path d="M12 18c0-6 6-9 10-7 2-4 10-5 13-1 5-2 10 2 9 8" /><path d="M22 28v18M34 28v18"/></svg>',
+  gaudi: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"><path d="M8 44c8-4 40-4 48 0"/><path d="M16 42c0-14 6-24 16-24s16 10 16 24"/><path d="M44 24c4-10 10-14 14-16-2 6-4 12-10 18" fill="currentColor"/></svg>'
+};
+
+/* ---------- Views ---------- */
+function topBar() {
+  const inGame = S.phase !== "setup" && S.phase !== "end";
+  const label = S.phase === "reveal" ? "Rollen" : S.round ? (["night", "nightIntro", "dawn"].includes(S.phase) ? `Nacht ${S.round}` : `Tag ${S.round}`) : "";
+  return `<div class="top"><div class="brand">Mafia<small>${h(label || "Wiesn-Edition")}</small></div>
+    ${inGame ? (S.confirmAbort
+      ? `<div class="abort"><button class="link warn" data-a="abortYes">Spiel beenden</button><button class="link" data-a="abortNo">Weiterspielen</button></div>`
+      : `<button class="link" data-a="abort">Abbrechen</button>`) : ""}</div>`;
+}
+
+function vSetup() {
+  const n = S.names.length, s = { ...S.settings, mafia: mafiaCount() };
+  const err = Engine.validate(n, s);
+  const toggle = (k, t, d) => `<div class="setting"><div><b>${t}</b><small>${d}</small></div>
+    <button class="toggle" role="switch" aria-checked="${!!S.settings[k]}" aria-label="${t}" data-a="tog" data-v="${k}"></button></div>`;
+  return `<section class="stage">
+    <h1 class="hero">Mafia<span>Wiesn-Edition</span></h1>
+    <p class="lede">Ein Handy, ein Zelt, ein paar Bierdiebe. Das Handy ist euer Spielleiter und geht reihum.</p>
+  </section>
+  <section class="panel">
+    <div class="row"><h2>Wer sitzt am Tisch?</h2><span class="count">${n}</span></div>
+    ${S.examples ? `<p class="hint">Das sind Beispielnamen. Sobald du den ersten echten Namen einträgst, verschwinden sie.</p>` : `<p class="hint">In Sitzreihenfolge eintragen, dann geht das Handy einfach im Kreis.</p>`}
+    <form class="add" id="addForm"><input id="nameInput" name="name" placeholder="Name eintragen" maxlength="16" autocomplete="off" enterkeyhint="done" aria-label="Name eintragen"><button class="btn primary small" type="submit">Dazu</button></form>
+    <ul class="chips">${S.names.map((x, i) => `<li class="chip${S.examples ? " ex" : ""}">${h(x)}<button data-a="rm" data-v="${i}" aria-label="${h(x)} entfernen">×</button></li>`).join("")}</ul>
+    ${n ? `<button class="link" data-a="clear" style="align-self:flex-start">Alle entfernen</button>` : ""}
+  </section>
+  <section class="panel">
+    <h2>Rollen</h2>
+    <div class="setting"><div><b>Bierdiebe (Mafia)</b><small>${S.settings.mafia == null ? "Automatisch passend zur Gruppengröße" : `Vorschlag wäre ${Engine.suggestMafia(n)}`}</small></div>
+      <div class="stepper"><button data-a="mafia" data-v="-1" aria-label="Weniger Bierdiebe">−</button><output>${s.mafia}</output><button data-a="mafia" data-v="1" aria-label="Mehr Bierdiebe">+</button></div></div>
+    ${toggle("ordner", "Ordner", "Filzt nachts einen Gast und erfährt, ob er Bierdieb ist")}
+    ${toggle("sani", "Sanitäter", "Rettet nachts einen Gast vor dem Rauswurf")}
+    ${toggle("gaudi", "Gaudibursch", "Spielt allein und gewinnt, wenn er tagsüber rausfliegt")}
+    ${toggle("reveal", "Rolle beim Ausscheiden zeigen", "Wer rausfliegt, wird aufgedeckt")}
+    <div class="setting"><div><b>Diskussion pro Tag</b><small>Timer, den ihr jederzeit verlängern könnt</small></div>
+      <div class="stepper"><button data-a="min" data-v="-1" aria-label="Kürzer">−</button><output>${S.settings.minutes}′</output><button data-a="min" data-v="1" aria-label="Länger">+</button></div></div>
+  </section>
+  <details class="panel rules"><summary>Spielregeln in 30 Sekunden</summary>
+    <ul>
+      <li><b>Nachts</b> geht das Handy reihum. Jeder bekommt eine geheime Aufgabe, auch normale Gäste, damit niemand am Tippen erkennt, wer welche Rolle hat.</li>
+      <li>Die <b>Bierdiebe</b> wählen ein Opfer, der <b>Sanitäter</b> beschützt jemanden, der <b>Ordner</b> filzt jemanden.</li>
+      <li><b>Morgens</b> liegt das Handy in der Mitte und verkündet, wer unterm Tisch liegt.</li>
+      <li><b>Tagsüber</b> wird diskutiert und per Handzeichen abgestimmt. Wer die meisten Stimmen hat, fliegt raus.</li>
+      <li>Wer raus ist, schweigt bis zum Schluss.</li>
+    </ul>
+  </details>
+  ${err ? `<p class="err">${h(err)}</p>` : ""}
+  <button class="btn primary" data-a="start" ${err ? "disabled" : ""}>Rollen verteilen</button>`;
+}
+
+function vHandoff(eyebrow, name, sub) {
+  return `<section class="stage handoff">
+    <p class="eyebrow">${eyebrow}</p>
+    <p class="pass">Gib das Handy an</p>
+    <p class="who">${h(name)}</p>
+    <p class="hint">${sub}</p>
+    <div class="actions" style="width:100%"><button class="btn primary" data-a="iam">Ich bin ${h(name)}</button></div>
+  </section>`;
+}
+
+function vReveal() {
+  const p = S.players[S.i];
+  if (S.sub === "handoff") return vHandoff(`Rollenverteilung · ${S.i + 1} von ${S.players.length}`, p.name, "Alle anderen schauen weg.");
+  const R = ROLES[p.role];
+  let allies = "";
+  if (p.role === "mafia") {
+    const others = S.players.filter((q, j) => q.role === "mafia" && j !== S.i).map(q => h(q.name));
+    allies = `<p class="allies">${others.length ? `Deine Komplizen: ${others.join(", ")}` : "Du bist der einzige Bierdieb. Viel Glück."}</p>`;
+  }
+  return `<section class="stage"><div class="card"><div class="strip"></div><div class="inner">
+    <p class="eyebrow">${h(p.name)}, du bist</p>
+    <div class="emblem">${ICON[p.role]}</div>
+    <h2 class="rolename">${R.name}</h2>
+    <p>${R.desc}</p>
+    <p class="goal">${R.goal}</p>
+    ${allies}
+  </div></div>
+  <button class="btn primary" data-a="gotit">Gemerkt, verdecken</button></section>`;
+}
+
+function vNightIntro() {
+  return `<section class="stage">
+    <p class="eyebrow">Nacht ${S.round}</p>
+    <h2 class="big">Das Zelt schläft.</h2>
+    <p>Das Handy geht jetzt reihum an alle, die noch im Spiel sind. Jeder hat eine geheime Aufgabe, auch die normalen Gäste. Nehmt euch alle ungefähr gleich lang Zeit.</p>
+    <p class="note">Reihenfolge: ${alive().map(p => h(p.name)).join(" → ")}</p>
+    <button class="btn primary" data-a="nightGo">Nacht starten</button>
+  </section>`;
+}
+
+function optGrid(list, disabledFn) {
+  return `<div class="grid">${list.map(p => {
+    const d = disabledFn ? disabledFn(p) : null;
+    return `<button class="opt" data-a="sel" data-v="${p.i}" aria-pressed="${S.sel === p.i}" ${d ? "disabled" : ""}>${h(p.name)}${d ? `<small>${d}</small>` : ""}</button>`;
+  }).join("")}</div>`;
+}
+
+function vNight() {
+  const N = S.night, me = N.order[N.pos], p = S.players[me];
+  if (S.sub === "handoff") return vHandoff(`Nacht ${S.round} · ${N.pos + 1} von ${N.order.length}`, p.name, "Alle anderen: Augen zu oder wegschauen.");
+  if (S.sub === "result") {
+    const t = S.players[N.check];
+    return `<section class="stage"><div class="card"><div class="strip"></div><div class="inner">
+      <p class="eyebrow">${h(p.name)} · Ordner</p>
+      <h2 class="rolename" style="font-size:2.4rem">${h(t.name)} ist ${t.role === "mafia" ? "ein Bierdieb." : "kein Bierdieb."}</h2>
+      <p class="goal">Behalte das für dich, bis der Moment passt.</p>
+    </div></div><button class="btn primary" data-a="next">Gemerkt, weitergeben</button></section>`;
+  }
+  const others = alive().filter(q => q.i !== me);
+  let prompt, note = "", grid, label;
+  if (p.role === "mafia") {
+    prompt = "Wen schickt ihr heute unter den Tisch?";
+    const mates = alive().filter(q => q.role === "mafia" && q.i !== me);
+    if (mates.length) note = `<p class="allies">${mates.map(q => {
+      const v = N.mafiaVotes.find(x => x.voter === q.i);
+      return v ? `${h(q.name)} will ${h(S.players[v.target].name)}` : `${h(q.name)} ist noch nicht dran`;
+    }).join("<br>")}</p><p class="hint">Bei Gleichstand zählt das Ziel, das zuerst gewählt wurde.</p>`;
+    grid = optGrid(others, q => q.role === "mafia" ? "Komplize" : null); label = "Den erwischen wir";
+  } else if (p.role === "ordner") {
+    prompt = "Wen filzt du heute Nacht?"; grid = optGrid(others); label = "Filzen";
+  } else if (p.role === "sani") {
+    prompt = "Auf wen passt du heute Nacht auf?";
+    grid = optGrid(alive(), q => q.i === S.lastProtect ? "letzte Nacht" : null); label = "Aufpassen";
+  } else {
+    prompt = "Wen hast du gerade am meisten im Verdacht?";
+    note = `<p class="hint">Nur zur Tarnung, damit niemand am Tippen etwas merkt. Zählt nicht.</p>`;
+    grid = optGrid(others); label = "Verdacht notieren";
+  }
+  return `<section class="stage">
+    <p class="eyebrow">${h(p.name)} · ${ROLES[p.role].name}</p>
+    <h2 style="font-size:1.6rem;font-weight:800">${prompt}</h2>
+    ${note}${grid}
+    <button class="btn primary" data-a="act" ${S.sel == null ? "disabled" : ""}>${label}</button>
+  </section>`;
+}
+
+function vDawn() {
+  return `<section class="stage handoff">
+    <p class="eyebrow">Morgengrauen</p>
+    <h2 class="big">Alle aufwachen!</h2>
+    <p>Leg das Handy in die Mitte, damit alle gleichzeitig die Morgenmeldung sehen.</p>
+    <div class="actions" style="width:100%"><button class="btn primary" data-a="toMorning">Morgenmeldung zeigen</button></div>
+  </section>`;
+}
+
+function roleLine(i) {
+  return S.settings.reveal ? `<p class="note">${h(S.players[i].name)} war <b>${ROLES[S.players[i].role].name}</b>.</p>` : "";
+}
+
+function vMorning() {
+  const M = S.morning;
+  let head, text;
+  if (M.victim != null) {
+    const n = h(S.players[M.victim].name);
+    head = `${n} liegt unterm Tisch.`;
+    text = M.line;
+  } else if (M.saved) {
+    head = "Alle sind noch da.";
+    text = "Die Bierdiebe haben zugeschlagen, aber der Sanitäter war schneller. Niemand ist gefallen.";
+  } else { head = "Eine ruhige Nacht."; text = "Niemand ist gefallen."; }
+  return `<section class="stage">
+    <p class="eyebrow">Tag ${S.round} · Morgenmeldung</p>
+    <h2 class="big">${head}</h2>
+    <p>${text}</p>
+    ${M.victim != null ? roleLine(M.victim) : ""}
+    ${M.victim != null ? `<p class="hint">${h(S.players[M.victim].name)} ist raus und sagt ab jetzt nichts mehr.</p>` : ""}
+    <button class="btn primary" data-a="${S.winner ? "toEnd" : "toDay"}">${S.winner ? "Zum Ergebnis" : "Diskussion starten"}</button>
+  </section>`;
+}
+
+function rosterHtml(showAll) {
+  return `<ul class="roster">${S.players.map(p => {
+    const showRole = showAll || (!p.alive && S.settings.reveal);
+    return `<li class="${p.alive ? "" : "dead"}"><span>${h(p.name)}</span><span class="tag${showRole && p.role === "mafia" ? " m" : ""}">${showRole ? ROLES[p.role].name : p.alive ? "im Zelt" : "raus"}</span></li>`;
+  }).join("")}</ul>`;
+}
+
+function vDay() {
+  if (S.sub === "vote") {
+    return `<section class="stage">
+      <p class="eyebrow">Tag ${S.round} · Abstimmung</p>
+      <h2 class="big">Wer fliegt raus?</h2>
+      <p>Stimmt per Handzeichen ab. Tippe dann auf die Person mit den meisten Stimmen.</p>
+      ${optGrid(alive())}
+      <div class="actions">
+        <button class="btn primary" data-a="lynch" ${S.sel == null ? "disabled" : ""}>${S.sel == null ? "Person antippen" : `${h(S.players[S.sel].name)} rauswerfen`}</button>
+        <button class="btn ghost" data-a="noLynch">Gleichstand, niemand fliegt</button>
+        <button class="link" data-a="backDisc" style="align-self:center">Zurück zur Diskussion</button>
+      </div></section>`;
+  }
+  if (S.sub === "verdict") {
+    const L = S.lynch;
+    let head, body = "";
+    if (L == null) { head = "Niemand fliegt raus."; body = "<p>Das Zelt konnte sich nicht einigen. Die Bierdiebe reiben sich die Hände.</p>"; }
+    else {
+      const p = S.players[L];
+      head = `${h(p.name)} fliegt aus dem Zelt.`;
+      body = p.role === "gaudi" ? `<p class="note">${h(p.name)} war der <b>Gaudibursch</b> und wollte genau das.</p>` : roleLine(L);
+    }
+    return `<section class="stage">
+      <p class="eyebrow">Tag ${S.round} · Urteil</p>
+      <h2 class="big">${head}</h2>${body}
+      <button class="btn primary" data-a="${S.winner ? "toEnd" : "toNight"}">${S.winner ? "Zum Ergebnis" : "Es wird Nacht"}</button>
+    </section>`;
+  }
+  const t = S.timer;
+  return `<section class="stage">
+    <p class="eyebrow">Tag ${S.round} · Diskussion</p>
+    <div class="panel timer">
+      <span class="clock${t.left === 0 ? " done" : ""}" id="clock">${fmt(t.left)}</span>
+      <div class="tbtns">
+        <button class="btn ${t.running ? "ghost" : "primary"}" data-a="tToggle">${t.running ? "Pause" : t.left === 0 ? "Zeit um" : "Start"}</button>
+        <button class="btn ghost" data-a="tPlus">+30 s</button>
+      </div>
+    </div>
+    <section class="panel"><div class="row"><h2>Im Zelt</h2><span class="count">${alive().length}</span></div>${rosterHtml(false)}</section>
+    <button class="btn primary" data-a="toVote">Zur Abstimmung</button>
+  </section>`;
+}
+
+function vEnd() {
+  const W = { mafia: ["Die Maßkrug-Mafia gewinnt!", "Die Bierdiebe haben das Zelt übernommen."],
+              guests: ["Die Gäste gewinnen!", "Alle Bierdiebe sind draußen. Prost!"],
+              gaudi: ["Der Gaudibursch gewinnt!", "Er wollte rausfliegen, und ihr habt ihm den Gefallen getan."] }[S.winner];
+  return `<section class="stage">
+    <p class="eyebrow">Nach ${S.round} ${S.round === 1 ? "Runde" : "Runden"}</p>
+    <h2 class="big">${W[0]}</h2><p>${W[1]}</p>
+    <section class="panel"><h2>Alle Rollen</h2>${rosterHtml(true)}</section>
+    <div class="actions">
+      <button class="btn primary" data-a="again">Nochmal mit derselben Runde</button>
+      <button class="btn ghost" data-a="toSetup">Spieler oder Rollen ändern</button>
+    </div></section>`;
+}
+
+/* ---------- Render ---------- */
+function render(focusInput) {
+  const views = { setup: vSetup, reveal: vReveal, nightIntro: vNightIntro, night: vNight, dawn: vDawn, morning: vMorning, day: vDay, end: vEnd };
+  document.getElementById("app").innerHTML = topBar() + views[S.phase]();
+  store.set(KEY, S);
+  if (focusInput) { const el = document.getElementById("nameInput"); if (el) el.focus(); }
+  else window.scrollTo(0, 0);
+}
+
+/* ---------- Actions ---------- */
+const MORNING_LINES = [
+  n => `Beim ersten Hahnenschrei findet man ${n} schnarchend unter der Bierbank. Für ${n} ist die Wiesn vorbei.`,
+  n => `Die Maßkrug-Mafia hat ${n} heute Nacht eine Maß zu viel eingeflößt.`,
+  n => `${n} wurde zuletzt beim Fahrgeschäft gesehen. Jetzt liegt ${n} im Bierkoma.`,
+  n => `Von ${n} ist nur noch ein halber Brezn übrig. Die Bierdiebe waren da.`
+];
+
+function startGame(names) {
+  const s = { ...S.settings, mafia: mafiaCount() };
+  S.players = Engine.assign(names, s);
+  Object.assign(S, { phase: "reveal", i: 0, sub: "handoff", round: 0, lastProtect: null, winner: null, morning: null, lynch: null, sel: null, confirmAbort: false });
+}
+
+function finishNight() {
+  const N = S.night;
+  const r = Engine.resolveNight(N);
+  S.lastProtect = N.protect ?? null;
+  if (r.victim != null) S.players[r.victim].alive = false;
+  S.morning = { ...r, line: r.victim != null ? pick(MORNING_LINES)(h(S.players[r.victim].name)) : "" };
+  S.winner = Engine.winner(S.players);
+  S.phase = "dawn";
+}
+
+const A = {
+  rm(v) { S.names.splice(+v, 1); if (S.examples && !S.names.length) S.examples = false; },
+  clear() { S.names = []; S.examples = false; },
+  mafia(v) { const n = mafiaCount() + (+v); S.settings.mafia = Math.max(1, Math.min(6, n)); },
+  tog(k) { S.settings[k] = !S.settings[k]; },
+  min(v) { S.settings.minutes = Math.max(1, Math.min(15, S.settings.minutes + (+v))); },
+  start() {
+    if (Engine.validate(S.names.length, { ...S.settings, mafia: mafiaCount() })) return;
+    if (!S.examples) store.set(NKEY, S.names);
+    startGame(S.names.slice());
+  },
+  iam() { S.sub = S.phase === "reveal" ? "role" : "act"; S.sel = null; },
+  gotit() {
+    if (S.i < S.players.length - 1) { S.i++; S.sub = "handoff"; }
+    else { S.round = 1; S.phase = "nightIntro"; }
+  },
+  nightGo() {
+    S.night = { order: alive().map(p => p.i), pos: 0, mafiaVotes: [], protect: null, check: null };
+    S.phase = "night"; S.sub = "handoff"; S.sel = null;
+  },
+  sel(v) { S.sel = +v; },
+  act() {
+    if (S.sel == null) return;
+    const N = S.night, me = N.order[N.pos], role = S.players[me].role;
+    if (role === "mafia") N.mafiaVotes.push({ voter: me, target: S.sel });
+    if (role === "sani") N.protect = S.sel;
+    if (role === "ordner") { N.check = S.sel; S.sub = "result"; return; }
+    A.next();
+  },
+  next() {
+    const N = S.night; S.sel = null;
+    if (N.pos < N.order.length - 1) { N.pos++; S.sub = "handoff"; } else finishNight();
+  },
+  toMorning() { S.phase = "morning"; },
+  toDay() { S.phase = "day"; S.sub = "talk"; S.sel = null; S.timer = { left: S.settings.minutes * 60, running: false, endAt: 0 }; },
+  tToggle() {
+    const t = S.timer;
+    if (t.running) { t.left = Math.max(0, Math.ceil((t.endAt - Date.now()) / 1000)); t.running = false; }
+    else { if (t.left === 0) t.left = 60; t.endAt = Date.now() + t.left * 1000; t.running = true; }
+  },
+  tPlus() { const t = S.timer; t.left += 30; if (t.running) t.endAt += 30000; },
+  toVote() { S.sub = "vote"; S.sel = null; S.timer.running = false; },
+  backDisc() { S.sub = "talk"; S.sel = null; },
+  lynch() {
+    if (S.sel == null) return;
+    S.lynch = S.sel; S.players[S.sel].alive = false; S.sel = null;
+    S.winner = Engine.winner(S.players, S.lynch); S.sub = "verdict";
+  },
+  noLynch() { S.lynch = null; S.winner = Engine.winner(S.players); S.sub = "verdict"; },
+  toNight() { S.round++; S.phase = "nightIntro"; S.lynch = null; },
+  toEnd() { S.phase = "end"; },
+  again() { startGame(S.players.map(p => p.name)); },
+  toSetup() { const names = S.players.length ? S.players.map(p => p.name) : S.names; const st = S.settings; S = fresh(names); S.settings = st; S.examples = false; },
+  abort() { S.confirmAbort = true; },
+  abortNo() { S.confirmAbort = false; },
+  abortYes() { A.toSetup(); }
+};
+
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-a]");
+  if (!b || b.disabled) return;
+  wake();
+  const a = b.dataset.a;
+  if (a !== "abort" && a !== "abortNo") S.confirmAbort = false;
+  A[a](b.dataset.v);
+  render();
+});
+
+document.addEventListener("submit", e => {
+  if (e.target.id !== "addForm") return;
+  e.preventDefault();
+  const v = e.target.name.value.trim().replace(/\s+/g, " ");
+  if (!v) return;
+  if (S.examples) { S.names = []; S.examples = false; }
+  if (!S.names.some(x => x.toLowerCase() === v.toLowerCase())) S.names.push(v);
+  render(true);
+});
+
+/* Timer tick: updates only the clock text */
+setInterval(() => {
+  const t = S.timer;
+  if (S.phase !== "day" || S.sub !== "talk" || !t.running) return;
+  const left = Math.max(0, Math.ceil((t.endAt - Date.now()) / 1000));
+  if (left !== t.left) {
+    t.left = left;
+    if (left === 0) { t.running = false; try { navigator.vibrate && navigator.vibrate([300, 150, 300]); } catch (e) {} render(); return; }
+    const c = document.getElementById("clock"); if (c) c.textContent = fmt(left);
+    store.set(KEY, S);
+  }
+}, 250);
+
+/* Keep the screen on while playing */
+let lock = null;
+async function wake() {
+  try { if (!lock && navigator.wakeLock) { lock = await navigator.wakeLock.request("screen"); lock.addEventListener("release", () => { lock = null; }); } } catch (e) { lock = null; }
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") wake(); });
+
+window.claude?.hot?.snapshot?.(() => S);
+const boot = data => { if (data && data.phase) S = data; render(); };
+window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
+</script>
